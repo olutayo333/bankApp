@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> onkeyup
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body onload="fetchDetails()"> 
+    <div class="container">
+        <div class="row">
+            <div class=" col-lg-5 pt-5 rounded bg-secondary text-white vh-100 mx-auto"> <hr>
+                <h1 class="mb-5"> Welcome <sub id="username" style="float: inline-end;"> </sub> </h1>
+                <p class="mt-5 "> Account Number: <span id="accountNum"> </span> </p>
+                <p class="mt-2"> Balance: <span id="balance"> </span></p>
+
+                <div class="row">
+                   <div class="col-12"> 
+                        <button class="btn btn danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#depositBox" aria-controls="offcanvasRight">  Deposit </button>
+                        <button class="btn btn danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#transferBox" aria-controls="offcanvasRight">  Transfer  </button>
+                        <button class="btn btn danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#withdrawerBox" aria-controls="offcanvasRight"> Withdraw </button>
+                        <button class="btn btn danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#transactionHistoryBox" aria-controls="offcanvasRight" onclick="history()"> Transaction History </button>        
+                   </div>
+                </div>
+                <button class="mt-5 btn btn-dark col-10 col-lg-7 ms-3 btn-sm mb-5" onclick="logout()"> Log Out</button> <hr>
+                <button class="btn btn-sm btn-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#deleteAccountBox" aria-controls="offcanvasRight"> Delete Account </button> 
+            </div>
+            
+        </div> 
+                <!-- <button class="btn btn-primary" >Toggle right offcanvas</button> -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="depositBox" aria-labelledby="offcanvasRightLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasRightLabel">Make Deposit</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <input type="number" placeholder="Enter the amount you want to deposit" id="depositAmount" class="form-control"> 
+                        <button onclick="makeDeposit()" class="btn btn-danger mt-3"> Confirm Deposit</button> 
+                    </div>
+                </div>
+
+
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="transferBox" aria-labelledby="offcanvasRightLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasRightLabel">Make Transfer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <input type="number" placeholder="Enter the amount you want to transfer" id="transferAmount" class="form-control"> <br>
+                        
+                        <input type="number" placeholder="Enter the reciever's Account Number" id="recieverAccount" onkeyup="checkAccount()"  class="form-control" maxlength="10">
+                        <small id="trsName"> </small>
+                        <button class="btn btn-danger mt-3" onclick="makeTransfer()"> Confirm Transfer</button> 
+                    </div>
+                </div>
+
+
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="withdrawerBox" aria-labelledby="offcanvasRightLabel">
+                    <div class="offcanvas-header">
+                        <h5 class="offcanvas-title" id="offcanvasRightLabel">Make Withdrawer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <input type="numer" placeholder="How Much do you want to withdraw?" id="withdrawerAmount" class="form-control">
+                        <button class="btn btn-danger mt-3"  onclick="withdraw()"> Confirm Withdrawer </button>
+                    </div>
+                </div>
+                        
+                    <div class="offcanvas offcanvas-end" tabindex="-1" id="transactionHistoryBox" aria-labelledby="offcanvasRightLabel">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasRightLabel">Transaction History</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <div id="displayHistory" style="font-size: 13px;"> </div>
+                        </div>
+                    </div>
+
+                    <div class="offcanvas offcanvas-end" tabindex="-1" id="deleteAccountBox" aria-labelledby="offcanvasRightLabel">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasRightLabel">Delete Account</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <input id="deleteEmail" class="form-control mt-5" placeholder="Enter your Email Address">
+                            <input id="deletePassword" class="form-control mt-5" placeholder="Enter your password">
+
+                            <button onclick="deleteMyAccount()" class="btn btn-danger btn-sm mt-4"> Delete Account </button>
+                        </div>
+                    </div>
+</div> 
+    </div>
+
+    <script> 
+        function fetchDetails()
+        {
+            let currentUser =  localStorage.getItem('currentUser')
+            if(currentUser){
+                let users = JSON.parse(localStorage.getItem('users'));
+                let details = users.filter(u=>(u.email==currentUser )) //filter returns the whole array 
+                document.getElementById('username').innerHTML = details[0].name;
+                document.getElementById('accountNum').innerHTML = details[0].accountNumber;
+                document.getElementById('balance').innerHTML = details[0].balance  
+            }
+            else{windows.open('login.html', '_self')}
+        }
+        
+        function makeDeposit()
+        {    
+            let currentUser = localStorage.getItem('currentUser');
+            let amount = document.getElementById('depositAmount').value
+            let users = JSON.parse(localStorage.getItem('users'));
+            let index = users.findIndex(u=> u.email == currentUser);
+            if (confirm('Are you sure want to make the deposit of' + " " + "#" + amount)) 
+            {    users[index].balance = parseFloat(users[index].balance) + parseFloat(amount);
+                localStorage.setItem('users', JSON.stringify(users));
+                fetchDetails()
+                alert( "#" + amount + " " + 'Deposit Successful')
+                depositAmount.value ="";
+                
+                let history = [];  history.length=0; let d = new Date().toLocaleString(); let name = users[index].name; 
+                let hisObj = { amount, d, name } 
+               
+                let oldHistory = JSON.parse(localStorage.getItem('history'))
+                if (localStorage.getItem('history')){history = oldHistory}
+
+                history.unshift(hisObj); 
+                localStorage.setItem('history', JSON.stringify(history))
+                console.log(history)
+
+                oldusers = JSON.parse(localStorage.getItem("users"));
+            if (oldusers){users = oldusers}
+            } 
+        }   
+        
+        function makeTransfer()
+        {  let amount = document.getElementById('transferAmount').value;
+            let recieverAccount = document.getElementById('recieverAccount').value;
+
+            let currentUser = localStorage.getItem('currentUser');
+            if (currentUser)
+            {   if(confirm('Are you sure you want to make this transfer?')) 
+                {
+                    let users = JSON.parse(localStorage.getItem('users'));
+                    let index = users.findIndex(u=> u.email == currentUser);
+                    let balance = users[index].balance;
+                    let myAccount = users[index].accountNumber;
+                    if (myAccount == recieverAccount) {alert('You cannot transfer to yourself'); return;}
+                    if(recieverAccount.length>10 || recieverAccount.length <10){alert('Account Number cannot be more than 10 digits')}
+                    if (balance >= amount)
+                    {
+                        let recieverIndex = users.findIndex(u=> u.accountNumber == recieverAccount);
+                        if(recieverIndex<0)
+                        { alert('Invalid Account Number')  }
+                        else
+                        {
+                            users[recieverIndex].balance = Number(users[recieverIndex].balance) + Number(amount);
+                            users[index].balance = Number(users[index].balance) - Number(amount);
+                            localStorage.setItem('users', JSON.stringify(users) );
+                            fetchDetails();
+                            alert('Transfer Successful')
+                        
+                            let history = [];  history.length=0; let d = new Date().toLocaleString(); let name = users[index].name; 
+                            let hisObj = { amount, d, name } 
+                        
+                            let oldHistory = JSON.parse(localStorage.getItem('history'))
+                            if (localStorage.getItem('history')){history = oldHistory}
+
+                            history.unshift(hisObj); 
+                            localStorage.setItem('history', JSON.stringify(history))
+                        
+                        }
+                    }
+                    else{alert('Insufficient Funds')}       
+                }
+                transferAmount.value =""; 
+                recieverAccount="";
+            }
+        }
+        function withdraw()
+        {
+            let currentUser = localStorage.getItem('currentUser');
+            if(currentUser)
+            { if(confirm('Are you sure you want to withdraw ' + "#" + withdrawerAmount.value));
+                let amount = withdrawerAmount.value; 
+                let users = JSON.parse(localStorage.getItem('users'));
+                let index = users.findIndex(u=> u.email == currentUser ); 
+                let balance = users[index].balance; 
+
+                if (balance >= amount) 
+                   { console.log(amount); 
+                    users[index].balance = Number(users[index].balance) - Number(amount);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    fetchDetails();
+                    alert('Withdraw Successful')
+                    withdrawerAmount.value=""
+                    
+                    let history = [];  history.length=0; let d = new Date().toLocaleString(); let name = users[index].name; 
+                        let hisObj = { amount, d, name } 
+                    
+                        let oldHistory = JSON.parse(localStorage.getItem('history'))
+                        if (localStorage.getItem('history')){history = oldHistory}
+
+                        history.unshift(hisObj); 
+                        localStorage.setItem('history', JSON.stringify(history))
+                        console.log(history)
+
+                   }
+                else {alert('insufficient funds')}
+            }
+        }
+
+        function history()
+        {    
+            let history = JSON.parse(localStorage.getItem('history')); let content = "";
+            history.map(u=>(content +=`<div> <small>${u.d}</small> - ${u.name} - <b style="float: inline-end;"> #${u.amount} </b> </div>`))
+            displayHistory.innerHTML = content; 
+        }
+
+        function checkAccount()
+        {
+            let recieverAccount = document.getElementById('recieverAccount').value;
+            if(recieverAccount.length == 10)
+            { 
+                let users = JSON.parse(localStorage.getItem('users'));
+                let index = users.findIndex(u=>(u.accountNumber == recieverAccount));
+                if (index < 0 ) { trsName.innerHTML = "Invalid Account Number"; document.getElementById('trsName').style.borderInline='1px solid red'}
+                else{trsName.innerHTML = users[index].name; document.getElementById('trsName').style.borderInline='1px solid green'}
+            }
+            
+        }
+        
+        function logout()
+        {
+            localStorage.removeItem('currentUser')
+            window.open('login.html', '_self')
+        }
+
+        function deleteMyAccount()
+        {  
+            let currentUser =  localStorage.getItem('currentUser');
+           if(currentUser)
+            {
+                if  (confirm('ARE YOU SURE YOU WANT TO DELETE YOUR ACCOUNT ?'))
+                {   let delete_email = deleteEmail.value;
+                    let delete_password = deletePassword.value;
+                    let users = JSON.parse(localStorage.getItem('users'))
+                    let index = users.findIndex(u=>(u.password == delete_password && u.email == delete_email )); 
+                    if (delete_password == users[index].password)
+                    {
+                        users.splice(index, 1);
+                        localStorage.setItem('users', JSON.stringify(users));
+                        alert("Your account has been deleted")
+                        window.open('login.html', '_self');
+                    }
+                    else{ alert ("invalid password")}
+                }
+                else{ fetchDetails()}
+            }
+            else{window.open('login.html', '_self')}
+        }
+    </script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
